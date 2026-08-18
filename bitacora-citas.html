@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Bitácora de Citas — CIT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --teal-900:#0b4650;
+    --teal-800:#0e5462;
+    --teal-700:#136675;
+    --lime:#e6ff28;
+    --paper:#f5f6f3;
+    --card:#ffffff;
+    --ink:#0b1f22;
+    --muted:#6b7c7e;
+    --line:#e3e6e1;
+    --ok:#2f9e58;
+    --warn:#c98a12;
+    --bad:#c0453a;
+    --radius:18px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Plus Jakarta Sans', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  .app{
+    max-width:480px;
+    margin:0 auto;
+    min-height:100vh;
+    background:var(--paper);
+    position:relative;
+    padding-bottom:100px;
+  }
+
+  /* HEADER */
+  .header{
+    background:var(--teal-900);
+    color:#fff;
+    padding:28px 20px 22px;
+    border-radius:0 0 28px 28px;
+    position:relative;
+    overflow:hidden;
+  }
+  .header::after{
+    content:"";
+    position:absolute;
+    right:-40px; top:-40px;
+    width:140px; height:140px;
+    border-radius:50%;
+    background:radial-gradient(circle, rgba(230,255,40,0.18) 0%, transparent 70%);
+  }
+  .brand-eyebrow{
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--lime);
+    font-weight:700;
+    margin-bottom:6px;
+  }
+  .brand-title{
+    font-family:'Syne', sans-serif;
+    font-weight:800;
+    font-size:26px;
+    line-height:1.15;
+    margin:0 0 14px;
+  }
+  .stats-row{
+    display:flex;
+    gap:10px;
+    position:relative;
+    z-index:1;
+  }
+  .stat-pill{
+    flex:1;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.14);
+    border-radius:14px;
+    padding:10px 12px;
+    text-align:left;
+  }
+  .stat-num{
+    font-family:'Syne', sans-serif;
+    font-weight:700;
+    font-size:20px;
+    display:block;
+    color:var(--lime);
+  }
+  .stat-label{
+    font-size:11px;
+    color:rgba(255,255,255,0.75);
+  }
+
+  /* SECTIONS */
+  .section{
+    padding:22px 20px 0;
+  }
+  .section-title{
+    font-family:'Syne', sans-serif;
+    font-weight:700;
+    font-size:15px;
+    color:var(--teal-900);
+    margin:0 0 12px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .section-title .dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--lime);
+    box-shadow:0 0 0 3px rgba(230,255,40,0.25);
+  }
+  .empty-state{
+    background:var(--card);
+    border:1px dashed var(--line);
+    border-radius:var(--radius);
+    padding:24px 18px;
+    text-align:center;
+    color:var(--muted);
+    font-size:13.5px;
+  }
+
+  /* CARD */
+  .cita-card{
+    background:var(--card);
+    border-radius:var(--radius);
+    padding:16px 16px 14px;
+    margin-bottom:12px;
+    box-shadow:0 1px 2px rgba(11,31,34,0.04);
+    border:1px solid var(--line);
+  }
+  .cita-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
+    margin-bottom:8px;
+  }
+  .cita-name{
+    font-family:'Syne', sans-serif;
+    font-weight:700;
+    font-size:16.5px;
+    color:var(--ink);
+  }
+  .cita-meta{
+    font-size:12.5px;
+    color:var(--muted);
+    margin-top:2px;
+  }
+  .badge{
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:.03em;
+    text-transform:uppercase;
+    padding:5px 9px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+  .badge-pendiente{ background:#fff4d9; color:var(--warn); }
+  .badge-confirmada{ background:#e3f5ea; color:var(--ok); }
+  .badge-asistio{ background:var(--teal-900); color:var(--lime); }
+  .badge-no-asistio{ background:#fbe6e4; color:var(--bad); }
+
+  .cita-comment{
+    font-size:12.5px;
+    color:var(--muted);
+    background:var(--paper);
+    border-radius:10px;
+    padding:8px 10px;
+    margin:8px 0;
+  }
+
+  .cita-actions{
+    display:flex;
+    gap:8px;
+    margin-top:10px;
+    flex-wrap:wrap;
+  }
+  .btn{
+    border:none;
+    border-radius:10px;
+    padding:9px 12px;
+    font-size:12.5px;
+    font-weight:600;
+    font-family:'Plus Jakarta Sans', sans-serif;
+    cursor:pointer;
+    flex:1;
+    text-align:center;
+    transition:transform .08s ease;
+  }
+  .btn:active{ transform:scale(0.96); }
+  .btn-teal{ background:var(--teal-900); color:#fff; }
+  .btn-lime{ background:var(--lime); color:var(--teal-900); }
+  .btn-ghost{ background:var(--paper); color:var(--teal-900); border:1px solid var(--line); }
+  .btn-bad{ background:#fbe6e4; color:var(--bad); }
+
+  /* FAB */
+  .fab{
+    position:fixed;
+    bottom:24px;
+    left:50%;
+    transform:translateX(-50%);
+    max-width:480px;
+    width:calc(100% - 40px);
+  }
+  .fab-btn{
+    width:100%;
+    background:var(--teal-900);
+    color:var(--lime);
+    border:none;
+    border-radius:16px;
+    padding:16px;
+    font-family:'Syne', sans-serif;
+    font-weight:700;
+    font-size:15px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    box-shadow:0 8px 24px rgba(11,70,80,0.35);
+    cursor:pointer;
+  }
+
+  /* MODAL */
+  .overlay{
+    position:fixed; inset:0;
+    background:rgba(11,31,34,0.5);
+    display:none;
+    align-items:flex-end;
+    z-index:50;
+  }
+  .overlay.open{ display:flex; }
+  .sheet{
+    background:var(--paper);
+    width:100%;
+    max-width:480px;
+    margin:0 auto;
+    border-radius:24px 24px 0 0;
+    padding:22px 20px 26px;
+    max-height:88vh;
+    overflow-y:auto;
+    animation:slideUp .22s ease;
+  }
+  @keyframes slideUp{
+    from{ transform:translateY(30px); opacity:0; }
+    to{ transform:translateY(0); opacity:1; }
+  }
+  .sheet-title{
+    font-family:'Syne', sans-serif;
+    font-weight:800;
+    font-size:19px;
+    color:var(--teal-900);
+    margin:0 0 16px;
+  }
+  .field{ margin-bottom:12px; }
+  .field label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    color:var(--muted);
+    margin-bottom:5px;
+  }
+  .field input, .field textarea{
+    width:100%;
+    border:1px solid var(--line);
+    background:#fff;
+    border-radius:12px;
+    padding:11px 12px;
+    font-size:14.5px;
+    font-family:'Plus Jakarta Sans', sans-serif;
+    color:var(--ink);
+  }
+  .field textarea{ resize:none; min-height:60px; }
+  .field input:focus, .field textarea:focus{
+    outline:none;
+    border-color:var(--teal-800);
+  }
+  .row2{ display:flex; gap:10px; }
+  .row2 .field{ flex:1; }
+  .sheet-actions{
+    display:flex;
+    gap:10px;
+    margin-top:8px;
+  }
+  .status-options{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .status-chip{
+    flex:1;
+    min-width:44%;
+    padding:12px;
+    border-radius:12px;
+    border:1.5px solid var(--line);
+    background:#fff;
+    text-align:center;
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink);
+    cursor:pointer;
+  }
+  .status-chip.active-confirmada{ border-color:var(--ok); background:#e3f5ea; color:var(--ok); }
+  .status-chip.active-no-confirmada{ border-color:var(--warn); background:#fff4d9; color:var(--warn); }
+  .status-chip.active-asistio{ border-color:var(--teal-900); background:var(--teal-900); color:var(--lime); }
+  .status-chip.active-no-asistio{ border-color:var(--bad); background:#fbe6e4; color:var(--bad); }
+
+  .toast{
+    position:fixed;
+    top:16px; left:50%;
+    transform:translateX(-50%) translateY(-60px);
+    background:var(--teal-900);
+    color:var(--lime);
+    padding:10px 18px;
+    border-radius:999px;
+    font-size:12.5px;
+    font-weight:600;
+    z-index:100;
+    transition:transform .25s ease;
+    max-width:90%;
+    text-align:center;
+  }
+  .toast.show{ transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="brand-eyebrow">Círculo Inmobiliario Tijuana</div>
+    <h1 class="brand-title">Bitácora de Citas</h1>
+    <div class="stats-row">
+      <div class="stat-pill">
+        <span class="stat-num" id="statPendientes">0</span>
+        <span class="stat-label">Por confirmar</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-num" id="statHoy">0</span>
+        <span class="stat-label">Próximas</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-num" id="statAtendidas">0</span>
+        <span class="stat-label">Atendidas</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><span class="dot"></span>Próximas citas</div>
+    <div id="listaProximas"></div>
+  </div>
+
+  <div class="section" style="margin-top:6px;">
+    <div class="section-title"><span class="dot"></span>Historial</div>
+    <div id="listaHistorial"></div>
+  </div>
+
+  <div class="fab">
+    <button class="fab-btn" onclick="abrirNuevaCita()">＋ Agendar cita</button>
+  </div>
+</div>
+
+<!-- MODAL NUEVA CITA -->
+<div class="overlay" id="overlayNueva">
+  <div class="sheet">
+    <div class="sheet-title">Nueva cita</div>
+    <div class="field">
+      <label>Nombre</label>
+      <input type="text" id="inNombre" placeholder="Ej. Juan Gutiérrez">
+    </div>
+    <div class="field">
+      <label>Propiedad</label>
+      <input type="text" id="inPropiedad" placeholder="Ej. Casa Juárez">
+    </div>
+    <div class="field">
+      <label>Teléfono</label>
+      <input type="tel" id="inTelefono" placeholder="664 123 4567">
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>Fecha</label>
+        <input type="date" id="inFecha">
+      </div>
+      <div class="field">
+        <label>Hora</label>
+        <input type="time" id="inHora">
+      </div>
+    </div>
+    <div class="field">
+      <label>Comentarios (opcional)</label>
+      <textarea id="inComentarios" placeholder="Ej. interesado en Terraza, viene de San Diego"></textarea>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn btn-ghost" style="flex:1" onclick="cerrarModal('overlayNueva')">Cancelar</button>
+      <button class="btn btn-teal" style="flex:2" onclick="guardarCita()">Guardar cita</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETALLE / RESULTADO -->
+<div class="overlay" id="overlayDetalle">
+  <div class="sheet">
+    <div class="sheet-title" id="detalleTitulo">Cita</div>
+    <div class="field">
+      <label>Estado</label>
+      <div class="status-options" id="statusOptions"></div>
+    </div>
+    <div class="field">
+      <label>Comentarios / resultado</label>
+      <textarea id="inComentarioResultado" placeholder="¿Cómo salió la cita?"></textarea>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn btn-bad" style="flex:1" onclick="eliminarCita()">Eliminar</button>
+      <button class="btn btn-teal" style="flex:2" onclick="guardarDetalle()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Guardado</div>
+
+<script>
+let citas = [];
+let citaActivaId = null;
+let estadoSeleccionado = null;
+
+const STORAGE_KEY = 'citas:lista';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwiEAIWNTnVMmNzVDarP_2-RdF8_7E5SyzZ74xQTiosn6s2BTSAUoR_wfzTif8Go99N/exec'; // Sin cambios: la misma URL sigue funcionando
+
+async function syncCalendario(cita){
+  try{
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        eventId: cita.eventId || null,
+        nombre: cita.nombre,
+        propiedad: cita.propiedad,
+        telefono: cita.telefono,
+        fecha: cita.fecha,
+        hora: cita.hora,
+        comentarios: cita.comentarios,
+        estado: cita.estado
+      })
+    });
+    const data = await res.json();
+    if(data && data.eventId){
+      cita.eventId = data.eventId;
+    }
+  }catch(e){
+    console.error('Error sincronizando con calendario', e);
+    mostrarToast('Guardado, pero no se sincronizó con Calendar');
+  }
+}
+
+async function cargar(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, false);
+    citas = (res && res.value) ? JSON.parse(res.value) : [];
+  }catch(e){
+    citas = [];
+  }
+  render();
+}
+
+async function guardarStorage(){
+  try{
+    const result = await window.storage.set(STORAGE_KEY, JSON.stringify(citas), false);
+    if(!result){
+      mostrarToast('No se pudo guardar, intenta de nuevo');
+    }
+  }catch(e){
+    console.error('Error guardando', e);
+    mostrarToast('No se pudo guardar, intenta de nuevo');
+  }
+}
+
+function mostrarToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=> t.classList.remove('show'), 1600);
+}
+
+function abrirNuevaCita(){
+  document.getElementById('inNombre').value='';
+  document.getElementById('inPropiedad').value='';
+  document.getElementById('inTelefono').value='';
+  document.getElementById('inFecha').value='';
+  document.getElementById('inHora').value='';
+  document.getElementById('inComentarios').value='';
+  document.getElementById('overlayNueva').classList.add('open');
+}
+
+function cerrarModal(id){
+  document.getElementById(id).classList.remove('open');
+}
+
+async function guardarCita(){
+  const nombre = document.getElementById('inNombre').value.trim();
+  const propiedad = document.getElementById('inPropiedad').value.trim();
+  const telefono = document.getElementById('inTelefono').value.trim();
+  const fecha = document.getElementById('inFecha').value;
+  const hora = document.getElementById('inHora').value;
+  const comentarios = document.getElementById('inComentarios').value.trim();
+
+  if(!nombre || !fecha){
+    mostrarToast('Falta nombre o fecha');
+    return;
+  }
+
+  const nueva = {
+    id: Date.now().toString(),
+    nombre, propiedad, telefono, fecha, hora, comentarios,
+    estado: 'pendiente',
+    resultado: '',
+    eventId: null
+  };
+  citas.push(nueva);
+  cerrarModal('overlayNueva');
+  mostrarToast('Cita guardada ✓');
+  render();
+
+  await syncCalendario(nueva);
+  await guardarStorage();
+  render();
+}
+
+function abrirDetalle(id){
+  const cita = citas.find(c => c.id === id);
+  if(!cita) return;
+  citaActivaId = id;
+  estadoSeleccionado = cita.estado;
+  document.getElementById('detalleTitulo').textContent = cita.nombre + ' · ' + formatFecha(cita.fecha, cita.hora);
+  document.getElementById('inComentarioResultado').value = cita.resultado || cita.comentarios || '';
+
+  const opciones = [
+    {key:'confirmada', label:'Confirmada'},
+    {key:'no-confirmada', label:'No confirmó'},
+    {key:'asistio', label:'Asistió'},
+    {key:'no-asistio', label:'No asistió'}
+  ];
+  const cont = document.getElementById('statusOptions');
+  cont.innerHTML = '';
+  opciones.forEach(op=>{
+    const div = document.createElement('div');
+    div.className = 'status-chip' + (estadoSeleccionado===op.key ? ' active-'+op.key : '');
+    div.textContent = op.label;
+    div.onclick = ()=>{
+      estadoSeleccionado = op.key;
+      abrirDetalle(id);
+    };
+    cont.appendChild(div);
+  });
+
+  document.getElementById('overlayDetalle').classList.add('open');
+}
+
+async function guardarDetalle(){
+  const cita = citas.find(c => c.id === citaActivaId);
+  if(!cita) return;
+  cita.estado = estadoSeleccionado || cita.estado;
+  cita.resultado = document.getElementById('inComentarioResultado').value.trim();
+  cerrarModal('overlayDetalle');
+  mostrarToast('Actualizado ✓');
+  render();
+
+  await syncCalendario(cita);
+  await guardarStorage();
+  render();
+}
+
+async function eliminarCita(){
+  citas = citas.filter(c => c.id !== citaActivaId);
+  await guardarStorage();
+  cerrarModal('overlayDetalle');
+  mostrarToast('Cita eliminada');
+  render();
+}
+
+function formatFecha(fecha, hora){
+  if(!fecha) return '';
+  const d = new Date(fecha + 'T00:00:00');
+  const opciones = { weekday:'short', day:'numeric', month:'short' };
+  let txt = d.toLocaleDateString('es-MX', opciones);
+  if(hora) txt += ' · ' + hora;
+  return txt;
+}
+
+function badgeInfo(estado){
+  switch(estado){
+    case 'confirmada': return {cls:'badge-confirmada', label:'Confirmada'};
+    case 'no-confirmada': return {cls:'badge-pendiente', label:'No confirmó'};
+    case 'asistio': return {cls:'badge-asistio', label:'Asistió'};
+    case 'no-asistio': return {cls:'badge-no-asistio', label:'No asistió'};
+    default: return {cls:'badge-pendiente', label:'Pendiente'};
+  }
+}
+
+function render(){
+  const hoy = new Date().toISOString().split('T')[0];
+  const proximas = citas.filter(c => !['asistio','no-asistio'].includes(c.estado))
+                         .sort((a,b)=> (a.fecha+a.hora).localeCompare(b.fecha+b.hora));
+  const historial = citas.filter(c => ['asistio','no-asistio'].includes(c.estado))
+                          .sort((a,b)=> (b.fecha+b.hora).localeCompare(a.fecha+a.hora));
+
+  document.getElementById('statPendientes').textContent = citas.filter(c=>c.estado==='pendiente'||c.estado==='no-confirmada').length;
+  document.getElementById('statHoy').textContent = proximas.length;
+  document.getElementById('statAtendidas').textContent = historial.length;
+
+  const contP = document.getElementById('listaProximas');
+  const contH = document.getElementById('listaHistorial');
+
+  contP.innerHTML = proximas.length ? '' : '<div class="empty-state">No tienes citas próximas. Toca "Agendar cita" para registrar una.</div>';
+  contH.innerHTML = historial.length ? '' : '<div class="empty-state">Aún no hay citas atendidas.</div>';
+
+  proximas.forEach(c=>{
+    const b = badgeInfo(c.estado);
+    const card = document.createElement('div');
+    card.className = 'cita-card';
+    card.innerHTML = `
+      <div class="cita-top">
+        <div>
+          <div class="cita-name">${c.nombre}${c.propiedad ? ' · '+c.propiedad : ''}</div>
+          <div class="cita-meta">${formatFecha(c.fecha, c.hora)}${c.telefono ? ' · '+c.telefono : ''}</div>
+        </div>
+        <div class="badge ${b.cls}">${b.label}</div>
+      </div>
+      ${c.comentarios ? `<div class="cita-comment">${c.comentarios}</div>` : ''}
+      <div class="cita-actions">
+        <button class="btn btn-lime" onclick="marcarRapido('${c.id}','confirmada')">Confirmar</button>
+        <button class="btn btn-ghost" onclick="abrirDetalle('${c.id}')">Ver / editar</button>
+      </div>
+    `;
+    contP.appendChild(card);
+  });
+
+  historial.forEach(c=>{
+    const b = badgeInfo(c.estado);
+    const card = document.createElement('div');
+    card.className = 'cita-card';
+    card.onclick = ()=> abrirDetalle(c.id);
+    card.style.cursor='pointer';
+    card.innerHTML = `
+      <div class="cita-top">
+        <div>
+          <div class="cita-name">${c.nombre}${c.propiedad ? ' · '+c.propiedad : ''}</div>
+          <div class="cita-meta">${formatFecha(c.fecha, c.hora)}${c.telefono ? ' · '+c.telefono : ''}</div>
+        </div>
+        <div class="badge ${b.cls}">${b.label}</div>
+      </div>
+      ${c.resultado ? `<div class="cita-comment">${c.resultado}</div>` : ''}
+    `;
+    contH.appendChild(card);
+  });
+}
+
+async function marcarRapido(id, estado){
+  const cita = citas.find(c => c.id === id);
+  if(!cita) return;
+  cita.estado = estado;
+  mostrarToast(estado==='confirmada' ? 'Cita confirmada ✓' : 'Actualizado');
+  render();
+
+  await syncCalendario(cita);
+  await guardarStorage();
+  render();
+}
+
+cargar();
+</script>
+</body>
+</html>
